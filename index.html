@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Automated Attendance Monitoring (Simple Version)</h1>
+<div class="container">
+    <a href="scan.html" class="btn">Scan Attendance</a>
+    <h2>Attendance Records</h2>
+    <table id="attendanceTable">
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script src="script.js"></script>
+<script>
+    loadAttendance();
+</script>
+</body>
+</html>
