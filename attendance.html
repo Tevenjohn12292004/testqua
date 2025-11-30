@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Attendance System</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #e9eef3;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 900px;
+        margin: 30px auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2, h1 {
+        text-align: center;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 6px;
+        border: 1px solid #777;
+    }
+
+    button {
+        padding: 10px 18px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #005fcc;
+    }
+
+    .toggle {
+        color: blue;
+        text-align: center;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    th {
+        background: #3f76ff;
+        padding: 10px;
+        color: white;
+    }
+
+    td {
+        background: #f8f8f8;
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .action-btn {
+        padding: 5px 8px;
+        border-radius: 4px;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    .edit-btn {
+        background: #2196F3;
+    }
+
+    .delete-btn {
+        background: #E53935;
+    }
+</style>
+</head>
+<body>
+
+<!-- LOGIN / SIGNUP PAGE -->
+<div class="container" id="authPage">
+    <h2>Login</h2>
+
+    <div id="loginForm">
+        <input type="text" id="loginUser" placeholder="Username">
+        <input type="password" id="loginPass" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p class="toggle" onclick="showSignup()">Don't have an account? Sign up</p>
+    </div>
+
+    <div id="signupForm" style="display:none;">
+        <h2>Sign Up</h2>
+        <input type="text" id="newUser" placeholder="Create Username">
+        <input type="password" id="newPass" placeholder="Create Password">
+        <button onclick="signup()">Sign Up</button>
+        <p class="toggle" onclick="showLogin()">Already have an account? Login</p>
+    </div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div class="container" id="dashboardPage" style="display:none;">
+    <h1>Automated Attendance Monitoring</h1>
+
+    <button onclick="scanAttendance()">Scan Attendance</button>
+
+    <h2>Attendance Records</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="attendanceBody"></tbody>
+    </table>
+</div>
+
+<script>
+/* -------------------------
+    AUTH FUNCTIONS
+------------------------- */
+
+function showSignup() {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("signupForm").style.display = "block";
+}
+
+function showLogin() {
+    document.getElementById("signupForm").style.display = "none";
+    document.getElementById("loginForm").style.display = "block";
+}
+
+function signup() {
+    let user = document.getElementById("newUser").value;
+    let pass = document.getElementById("newPass").value;
+
+    if (user === "" || pass === "") {
+        alert("Please fill all fields.");
+        return;
+    }
+
+    localStorage.setItem("username", user);
+    localStorage.setItem("password", pass);
+
+    alert("Signup successful! You can now login.");
+    showLogin();
+}
+
+function login() {
+    let user = document.getElementById("loginUser").value;
+    let pass = document.getElementById("loginPass").value;
+
+    let savedUser = localStorage.getItem("username");
+    let savedPass = localStorage.getItem("password");
+
+    if (user === savedUser && pass === savedPass) {
+        document.getElementById("authPage").style.display = "none";
+        document.getElementById("dashboardPage").style.display = "block";
+        loadAttendance();
+    } else {
+        alert("Incorrect username or password.");
+    }
+}
+
+/* -------------------------
+    ATTENDANCE SYSTEM
+------------------------- */
+
+function scanAttendance() {
+    let studentId = prompt("Enter Student Name or ID:");
+
+    if (!studentId || studentId.trim() === "") return;
+
+    let now = new Date();
+
+    let record = {
+        studentId: studentId,
+        date: now.toLocaleDateString(),
+        time: now.toLocaleTimeString()
+    };
+
+    let attendance = JSON.parse(localStorage.getItem("attendance")) || [];
+    attendance.push(record);
+
+    localStorage.setItem("attendance", JSON.stringify(attendance));
+
+    loadAttendance();
+}
+
+function loadAttendance() {
+    let attendance = JSON.parse(localStorage.getItem("attendance")) || [];
+    let tableBody = document.getElementById("attendanceBody");
+
+    tableBody.innerHTML = "";
+
+    attendance.forEach((record, index) => {
+        tableBody.innerHTML += `
+            <tr>
+                <td>${record.studentId}</td>
+                <td>${record.date}</td>
+                <td>${record.time}</td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="editRecord(${index})">Edit</button>
+                    <button class="action-btn delete-btn" onclick="deleteRecord(${index})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function deleteRecord(i) {
+    let attendance = JSON.parse(localStorage.getItem("attendance")) || [];
+    attendance.splice(i, 1);
+    localStorage.setItem("attendance", JSON.stringify(attendance));
+    loadAttendance();
+}
+
+function editRecord(i) {
+    let attendance = JSON.parse(localStorage.getItem("attendance")) || [];
+    let newName = prompt("Edit Student Name:", attendance[i].studentId);
+
+    if (newName && newName.trim() !== "") {
+        attendance[i].studentId = newName;
+        localStorage.setItem("attendance", JSON.stringify(attendance));
+        loadAttendance();
+    }
+}
+</script>
+
+</body>
+</html>
